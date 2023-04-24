@@ -18,8 +18,8 @@ namespace ReelManagement
         private float cardWidth;
         private float cardHeight;
         private float cardInterval;
-        private const int maxCard = 5;
-        private const float maxSpeed = 30.0f;
+        private int maxCard;
+        private float maxSpeed;
 
         public GameObject reelManager;
         private GameObject cardPrefab;
@@ -33,6 +33,8 @@ namespace ReelManagement
             cardWidth = reelManager.GetComponent<ReelManagerScript>().getCardWidth();
             cardHeight = reelManager.GetComponent<ReelManagerScript>().getCardHeight();
             cardInterval = reelManager.GetComponent<ReelManagerScript>().getCardInterval();
+            maxCard = reelManager.GetComponent<ReelManagerScript>().getMaxCard();
+            maxSpeed = reelManager.GetComponent<ReelManagerScript>().getMaxSpeed();
 
             cardPrefab = reelManager.GetComponent<ReelManagerScript>().cardPrefab;
             itemList = new List<Item>();
@@ -58,7 +60,7 @@ namespace ReelManagement
 
             for (int i = 0; i < maxCard; i++)
             {
-                int r = (int)(Random.Range(0, symbolNum - 1));
+                int r = (int)(Random.Range(0, symbolNum));
                 GameObject s = reelManager.GetComponent<ReelManagerScript>().symbolList[r];
 
                 GameObject c = Instantiate(cardPrefab) as GameObject;
@@ -97,7 +99,7 @@ namespace ReelManagement
             float zPos = transform.position.z;
 
             int i = itemList.Count;
-            int r = (int)(Random.Range(0, symbolNum - 1));
+            int r = (int)(Random.Range(0, symbolNum));
             GameObject s = reelManager.GetComponent<ReelManagerScript>().symbolList[r];
 
             GameObject c = Instantiate(cardPrefab) as GameObject;
@@ -128,19 +130,58 @@ namespace ReelManagement
 
         private IEnumerator rotateItems()
         {
-            float accel = 5.0f;
-
             while (speed < maxSpeed)  
             {
+                float accel = 60.0f * Time.deltaTime;
                 speed += accel;
-                yield return new WaitForSeconds(0.1f);
+                yield return new WaitForEndOfFrame();
             }
 
             speed = maxSpeed;
+            yield break;
         }
 
         private IEnumerator stopItems(int result)
         {
+            float minSpeed = 10.0f;
+            yield return new WaitForSeconds(Random.Range(0.5f, 2.0f));
+
+            while (minSpeed < speed)
+            {
+                float accel = -80.0f * Time.deltaTime;
+                speed += accel;
+                yield return new WaitForEndOfFrame();
+            }
+            speed = minSpeed;
+
+            Item item;
+            while(true)
+            {
+                item = itemList[maxCard - 1];
+                if(item.symbolIndex == result)
+                    break;
+
+                yield return new WaitForEndOfFrame();
+            }
+
+            while (0.2f < item.card.transform.position.y)
+            {
+                if (1.0f < speed)
+                {
+                    float accel = -10.0f * Time.deltaTime;
+                    speed += accel;
+                }
+                yield return new WaitForEndOfFrame();
+            }
+
+            speed = 0f;
+
+            float distance = item.card.transform.position.y;
+            for (int i = 0; i < maxCard; i++)
+            {
+                itemList[i].card.transform.position -= new Vector3(0, distance, 0);
+            }
+
             yield break;
         }
 

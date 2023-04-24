@@ -2,12 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using EventManagement;
+
+using static EventType.EventType;
 
 namespace ReelManagement
 {
     public class ReelManagerScript : MonoBehaviour
     {
         [SerializeField] public List<GameObject> symbolList;
+        [SerializeField] public GameObject eventManager;
         [SerializeField] public GameObject reelPrefab;
         [SerializeField] public GameObject reelContainer;
         [SerializeField] public GameObject cardPrefab;
@@ -16,7 +20,10 @@ namespace ReelManagement
         // readonly data
         private float cardWidth;                
         private float cardHeight;               
-        private float cardInterval;              
+        private float cardInterval;   
+        
+        private int maxCard = 5;
+        private float maxSpeed = 30.0f;
         private const int minReel = 2, maxReel = 5;
 
         private List<GameObject> reelList;
@@ -28,51 +35,83 @@ namespace ReelManagement
         {
             cardWidth = cardPrefab.GetComponent<SpriteRenderer>().sprite.bounds.size.x;     // 3f
             cardHeight = cardPrefab.GetComponent<SpriteRenderer>().sprite.bounds.size.y;    // 2f
-            cardInterval = cardWidth / 10.0f;                                                                 // 0.3f
+            cardInterval = cardWidth / 10.0f;                                               // 0.3f
 
             reelList = new List<GameObject>();
             resultList = new List<int>();
             isActive = false;
             isBegin = false;
 
-            StartCoroutine(generateReels());
+            StartCoroutine(refreshSlotmachine());
         }
 
         void Update()
         {
-            if (isActive)
+            if (Input.GetKeyDown(KeyCode.Space))
             {
-                if (Input.GetKeyDown(KeyCode.Space)) 
+                if (isActive) 
                 {
+                    setActive(false);
                     if (!isBegin)
                     {
-                        clearResultList();
-                        for (int i = 0; i < reelNum; i++)
-                        {
-                            reelList[i].GetComponent<ReelScript>().rotateReel();
-                        }
-                        isBegin = true;
-                        setActive(false);
+                        StartCoroutine(beginRotation());
                     }
                     else
                     {
-                        initResultList();
-                        for (int i = 0; i < reelNum; i++)
-                        {
-                            reelList[i].GetComponent<ReelScript>().stopReel(resultList[i]);
-                        }
+                        StartCoroutine(stopRotation());
+                    }
+                }
+            }
+
+            if (Input.GetKeyDown(KeyCode.LeftArrow))
+            { 
+                if(!isBegin && isActive)
+                {
+                    if (minReel < reelNum)
+                    {
+                        setActive(false);
+                        reelNum--;
+                        StartCoroutine(refreshSlotmachine());
+                    }
+                }
+            }
+            if (Input.GetKeyDown(KeyCode.RightArrow))
+            { 
+                if(!isBegin && isActive)
+                {
+                    if (reelNum < maxReel)
+                    {
+                        setActive(false);
+                        reelNum++;
+                        StartCoroutine(refreshSlotmachine());
                     }
                 }
             }
         }
 
         // Custom Functions
+        private IEnumerator refreshSlotmachine()
+        {
+            for (int i = 0; i < reelList.Count; i++)
+            {
+                Destroy(reelList[i]);
+            }
+            reelList.Clear();
+
+            eventManager.GetComponent<EventManagerScript>().fadeIn();
+            yield return new WaitForSeconds(0.5f);
+            StartCoroutine(generateReels());
+            yield return new WaitForSeconds(1.0f);
+            eventManager.GetComponent<EventManagerScript>().fadeOut();
+            setActive(true);
+
+            yield break;
+        }
+
         private IEnumerator generateReels()
         {
-            yield return new WaitForSeconds(0.3f);
-
             float cardArea = (cardInterval * 2) + (cardWidth);
-            float beginXPos = reelNum % 2 == 0 ? (int)(reelNum / 2) * cardArea + (cardArea / 2) : (reelNum / 2) * cardArea;
+            float beginXPos = reelNum % 2 == 0 ? (int)(reelNum / 2) * cardArea - (cardArea / 2) : (reelNum / 2) * cardArea;
             beginXPos *= -1;
 
             for (int i = 0; i < reelNum; i++)
@@ -88,6 +127,75 @@ namespace ReelManagement
             }
 
             setActive(true);
+            yield break;
+        }
+
+        private IEnumerator beginRotation()
+        {
+            for (int i = 0; i < reelNum; i++)
+            {
+                reelList[i].GetComponent<ReelScript>().rotateReel();
+            }
+            isBegin = true;
+            while (true)
+            {
+                if (maxSpeed <= reelList[reelNum - 1].GetComponent<ReelScript>().getSpeed())
+                {
+                    setActive(true);
+                    break;
+                }
+                yield return new WaitForEndOfFrame();
+            }
+            yield break;
+        }
+
+        private IEnumerator stopRotation()
+        {
+            initResultList();
+            for (int i = 0; i < reelNum; i++)
+            {
+                reelList[i].GetComponent<ReelScript>().stopReel(resultList[i]);
+            }
+
+            while(true)
+            {
+                int i = 0;
+                for (; i < reelNum; i++) 
+                {
+                    if (reelList[i].GetComponent<ReelScript>().getSpeed() != 0)
+                        break;
+                }
+                if (i == reelNum)
+                    break;
+                yield return new WaitForEndOfFrame();
+            }
+            yield return new WaitForSeconds(0.5f);
+
+            StartCoroutine(runEvent());
+
+            isBegin = false;
+            yield break;
+        }
+
+        private IEnumerator runEvent()
+        {
+            int i = 1;
+            for(; i<resultList.Count; i++)
+            {
+                if (resultList[i - 1] != resultList[i])
+                    break;
+            }
+
+            if(i == resultList.Count)
+                eventManager.GetComponent<EventManagerScript>().runEvent(SlotmachineEvent.Win);
+            else
+                eventManager.GetComponent<EventManagerScript>().runEvent(SlotmachineEvent.Lose);
+
+            yield return new WaitForSeconds(1.0f);
+
+            setActive(true);
+            clearResultList();
+            yield break;
         }
 
         public float getCardWidth()
@@ -105,6 +213,16 @@ namespace ReelManagement
             return cardInterval;
         }
 
+        public int getMaxCard()
+        {
+            return maxCard;
+        }
+
+        public float getMaxSpeed()
+        {
+            return maxSpeed;
+        }
+
         public void setActive(bool b)
         {
             isActive = b;
@@ -112,10 +230,9 @@ namespace ReelManagement
 
         public void initResultList()
         {
-            resultList = new List<int>(new int[reelNum]);
             for (int i = 0; i < reelNum; i++)
             {
-                int r = (int)(Random.Range(0, symbolList.Count - 1));
+                int r = getResult();
                 resultList.Add(r);
             }
         }
@@ -123,6 +240,20 @@ namespace ReelManagement
         public void clearResultList()
         {
             resultList.Clear();
+        }
+
+        private int getResult()
+        {
+            float r = Random.Range(0, 100);
+
+            if (r <= 70)
+                return 0;
+            else if (r <= 80)
+                return 1;
+            else if (r <= 90)
+                return 2;
+            else
+                return 3;
         }
     }
 }
