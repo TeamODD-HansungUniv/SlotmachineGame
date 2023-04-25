@@ -43,14 +43,17 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Background_back
+    uniqueID: 1740345051
+    locked: 0
   - name: ReelCard
     uniqueID: 2298377333
     locked: 0
   - name: ReelSymbol
     uniqueID: 2199067845
     locked: 0
-  - name: Background
-    uniqueID: 1740345051
+  - name: Background_front
+    uniqueID: 2694460603
     locked: 0
   - name: UI
     uniqueID: 2094062735
