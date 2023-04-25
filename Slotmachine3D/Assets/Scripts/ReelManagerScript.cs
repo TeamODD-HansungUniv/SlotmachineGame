@@ -94,7 +94,7 @@ namespace ReelManagement
         {
 
             eventManager.GetComponent<EventManagerScript>().fadeIn();
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(1.0f);
 
             for (int i = 0; i < reelList.Count; i++)
             {
@@ -102,7 +102,7 @@ namespace ReelManagement
             }
             reelList.Clear();
             StartCoroutine(generateReels());
-            yield return new WaitForSeconds(1.0f);
+            yield return new WaitForSeconds(0.5f);
 
             eventManager.GetComponent<EventManagerScript>().fadeOut();
             setActive(true);
@@ -248,11 +248,11 @@ namespace ReelManagement
         {
             float r = Random.Range(0, 100);
 
-            if (r <= 70)
+            if (r <= 25)
                 return 0;
-            else if (r <= 80)
+            else if (r <= 50)
                 return 1;
-            else if (r <= 90)
+            else if (r <= 75)
                 return 2;
             else
                 return 3;
