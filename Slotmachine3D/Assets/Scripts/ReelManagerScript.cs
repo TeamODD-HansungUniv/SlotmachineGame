@@ -92,16 +92,18 @@ namespace ReelManagement
         // Custom Functions
         private IEnumerator refreshSlotmachine()
         {
+
+            eventManager.GetComponent<EventManagerScript>().fadeIn();
+            yield return new WaitForSeconds(0.5f);
+
             for (int i = 0; i < reelList.Count; i++)
             {
                 Destroy(reelList[i]);
             }
             reelList.Clear();
-
-            eventManager.GetComponent<EventManagerScript>().fadeIn();
-            yield return new WaitForSeconds(0.5f);
             StartCoroutine(generateReels());
             yield return new WaitForSeconds(1.0f);
+
             eventManager.GetComponent<EventManagerScript>().fadeOut();
             setActive(true);
 
