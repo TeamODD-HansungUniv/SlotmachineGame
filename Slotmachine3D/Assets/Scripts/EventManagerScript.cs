@@ -9,6 +9,7 @@ namespace EventManagement
 { 
     public class EventManagerScript : MonoBehaviour
     {
+        [SerializeField] GameObject settingCanvas;
         [SerializeField] GameObject fadeNormal;
         [SerializeField] GameObject fadeWin;
         [SerializeField] GameObject fadeLose;
@@ -17,6 +18,15 @@ namespace EventManagement
         void Start()
         {
 
+        }
+
+        void Update()
+        {
+            if(Input.GetKeyDown(KeyCode.Escape))
+            {
+                if(!settingCanvas.activeSelf)
+                    settingCanvas.SetActive(true);
+            }
         }
 
         // Custom Functions

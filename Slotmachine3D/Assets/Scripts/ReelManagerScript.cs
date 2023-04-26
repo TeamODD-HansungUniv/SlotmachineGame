@@ -13,9 +13,16 @@ namespace ReelManagement
         [SerializeField] public List<GameObject> symbolList;
         [SerializeField] public GameObject eventManager;
         [SerializeField] public GameObject reelPrefab;
+        [SerializeField] public GameObject reelFramePrefab;
         [SerializeField] public GameObject reelContainer;
         [SerializeField] public GameObject cardPrefab;
         [SerializeField] public int reelNum;
+
+        struct Reel
+        {
+            public GameObject reel;
+            public GameObject reelFrame;
+        };
 
         // readonly data
         private float cardWidth;                
@@ -26,7 +33,7 @@ namespace ReelManagement
         private float maxSpeed = 30.0f;
         private const int minReel = 2, maxReel = 5;
 
-        private List<GameObject> reelList;
+        private List<Reel> reelList;
         private List<int> resultList;
         private bool isActive, isBegin;
 
@@ -37,7 +44,7 @@ namespace ReelManagement
             cardHeight = cardPrefab.GetComponent<SpriteRenderer>().sprite.bounds.size.y;    // 2f
             cardInterval = cardWidth / 10.0f;                                               // 0.3f
 
-            reelList = new List<GameObject>();
+            reelList = new List<Reel>();
             resultList = new List<int>();
             isActive = false;
             isBegin = false;
@@ -98,7 +105,8 @@ namespace ReelManagement
 
             for (int i = 0; i < reelList.Count; i++)
             {
-                Destroy(reelList[i]);
+                Destroy(reelList[i].reelFrame);
+                Destroy(reelList[i].reel);
             }
             reelList.Clear();
             StartCoroutine(generateReels());
@@ -123,9 +131,19 @@ namespace ReelManagement
                 GameObject reel = Instantiate(reelPrefab) as GameObject;
                 reel.transform.SetParent(reelContainer.transform);
                 reel.transform.position = new Vector3(xPos, 0, 0);
-                reel.tag = "Reel";
+                /*reel.tag = "Reel";*/
                 reel.GetComponent<ReelScript>().reelManager = gameObject;
-                reelList.Add(reel);
+
+                GameObject frame = Instantiate(reelFramePrefab) as GameObject;
+                frame.transform.position = reel.transform.position;
+                frame.transform.parent = reel.transform;
+
+                Reel newReel = new Reel
+                {
+                    reelFrame = frame,
+                    reel = reel,
+                };
+                reelList.Add(newReel);
             }
 
             setActive(true);
@@ -136,12 +154,12 @@ namespace ReelManagement
         {
             for (int i = 0; i < reelNum; i++)
             {
-                reelList[i].GetComponent<ReelScript>().rotateReel();
+                reelList[i].reel.GetComponent<ReelScript>().rotateReel();
             }
             isBegin = true;
             while (true)
             {
-                if (maxSpeed <= reelList[reelNum - 1].GetComponent<ReelScript>().getSpeed())
+                if (maxSpeed <= reelList[reelNum - 1].reel.GetComponent<ReelScript>().getSpeed())
                 {
                     setActive(true);
                     break;
@@ -156,7 +174,7 @@ namespace ReelManagement
             initResultList();
             for (int i = 0; i < reelNum; i++)
             {
-                reelList[i].GetComponent<ReelScript>().stopReel(resultList[i]);
+                reelList[i].reel.GetComponent<ReelScript>().stopReel(resultList[i]);
             }
 
             while(true)
@@ -164,7 +182,7 @@ namespace ReelManagement
                 int i = 0;
                 for (; i < reelNum; i++) 
                 {
-                    if (reelList[i].GetComponent<ReelScript>().getSpeed() != 0)
+                    if (reelList[i].reel.GetComponent<ReelScript>().getSpeed() != 0)
                         break;
                 }
                 if (i == reelNum)
