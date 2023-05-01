@@ -30,6 +30,18 @@ namespace ReelManagement
         // Start is called before the first frame update
         void Start()
         {
+
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+
+        }
+
+        // Custom Functions
+        public void setup()
+        {
             cardWidth = reelManager.GetComponent<ReelManagerScript>().getCardWidth();
             cardHeight = reelManager.GetComponent<ReelManagerScript>().getCardHeight();
             cardInterval = reelManager.GetComponent<ReelManagerScript>().getCardInterval();
@@ -43,13 +55,6 @@ namespace ReelManagement
             StartCoroutine(generateStartItems());
         }
 
-        // Update is called once per frame
-        void Update()
-        {
-
-        }
-
-        // Custom Functions
         private IEnumerator generateStartItems()
         {
             int symbolNum = reelManager.GetComponent<ReelManagerScript>().symbolList.Count;
@@ -64,8 +69,9 @@ namespace ReelManagement
                 GameObject s = reelManager.GetComponent<ReelManagerScript>().symbolList[r];
 
                 GameObject c = Instantiate(cardPrefab) as GameObject;
-                c.transform.position = new Vector3(xPos, yPos + cardHeight * ((int)(maxCard / 2) - i) * (-1), zPos);
+                c.transform.position = new Vector3(xPos, yPos + (cardHeight * ((int)(maxCard / 2) - i) * (-1)), zPos);
                 c.GetComponent<SpriteRenderer>().sortingLayerName = "ReelCard";
+                c.GetComponent<SpriteRenderer>().sortingOrder = 2;
                 if (i == 0) c.GetComponent<CardScript>().setPrev(null);
                 else c.GetComponent<CardScript>().setPrev(itemList[i - 1].card);
                 /*c.GetComponent<SpriteRenderer>().sortingOrder = 3;*/
@@ -73,8 +79,8 @@ namespace ReelManagement
 
                 GameObject so = Instantiate(s) as GameObject;
                 /*so.GetComponent<SpriteRenderer>().sprite = Sprite.Create(s, new Rect(0, 0, s.width, s.height), new Vector2(0.5f, 0.5f));*/
-                so.transform.position = new Vector3(xPos, yPos + cardHeight * ((int)(maxCard / 2) - i) * (-1), zPos);
                 so.GetComponent<SpriteRenderer>().sortingLayerName = "ReelSymbol";
+                so.GetComponent<SpriteRenderer>().sortingOrder = 1;
                 so.transform.parent = c.transform;
 
                 Item item = new Item
@@ -144,6 +150,7 @@ namespace ReelManagement
         private IEnumerator stopItems(int result)
         {
             float minSpeed = 10.0f;
+            float yPos = transform.position.y;
             yield return new WaitForSeconds(Random.Range(0.5f, 2.0f));
 
             while (minSpeed < speed)
@@ -164,9 +171,9 @@ namespace ReelManagement
                 yield return new WaitForEndOfFrame();
             }
 
-            while (0.2f < item.card.transform.position.y)
+            while (yPos + 0.2f < item.card.transform.position.y)
             {
-                if (1.0f < speed)
+                if (yPos + 1.0f < speed)
                 {
                     float accel = -10.0f * Time.deltaTime;
                     speed += accel;
@@ -176,7 +183,7 @@ namespace ReelManagement
 
             speed = 0f;
 
-            float distance = item.card.transform.position.y;
+            float distance = item.card.transform.position.y - transform.position.y;
             for (int i = 0; i < maxCard; i++)
             {
                 itemList[i].card.transform.position -= new Vector3(0, distance, 0);

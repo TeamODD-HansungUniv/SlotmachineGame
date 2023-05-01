@@ -29,7 +29,7 @@ namespace ReelManagement
             float s = transform.GetComponentInParent<ReelScript>().getSpeed() * Time.deltaTime;
             transform.position -= new Vector3(0, s, 0);
 
-            if(transform.position.y < maxCard * -1)
+            if(transform.position.y < transform.parent.transform.position.y + (maxCard * -1))
             {
                 transform.GetComponentInParent<ReelScript>().destroyItem();
                 Destroy(gameObject);

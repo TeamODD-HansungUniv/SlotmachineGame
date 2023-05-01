@@ -56,6 +56,12 @@ TagManager:
   - name: Background_front
     uniqueID: 2694460603
     locked: 0
+  - name: Fade
+    uniqueID: 3946105865
+    locked: 0
+  - name: Result
+    uniqueID: 3140573251
+    locked: 0
   - name: UI
     uniqueID: 2094062735
     locked: 0

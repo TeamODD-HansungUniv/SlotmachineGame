@@ -28,13 +28,12 @@ namespace ReelManagement
         private float cardWidth;                
         private float cardHeight;               
         private float cardInterval;   
-        
         private int maxCard = 5;
         private float maxSpeed = 30.0f;
         private const int minReel = 2, maxReel = 5;
 
         private List<Reel> reelList;
-        private List<int> resultList;
+        public List<int> resultList;
         private bool isActive, isBegin;
 
         // Start is called before the first frame update
@@ -130,13 +129,15 @@ namespace ReelManagement
 
                 GameObject reel = Instantiate(reelPrefab) as GameObject;
                 reel.transform.SetParent(reelContainer.transform);
+                reelContainer.transform.position = new Vector3(0, transform.position.y, 0);
                 reel.transform.position = new Vector3(xPos, transform.position.y, 0);
                 /*reel.tag = "Reel";*/
                 reel.GetComponent<ReelScript>().reelManager = gameObject;
+                reel.GetComponent<ReelScript>().setup();
 
                 GameObject frame = Instantiate(reelFramePrefab) as GameObject;
                 frame.transform.position = reel.transform.position;
-                frame.transform.parent = reel.transform;
+                frame.transform.SetParent(reel.transform);
 
                 Reel newReel = new Reel
                 {
@@ -210,11 +211,6 @@ namespace ReelManagement
                 eventManager.GetComponent<EventManagerScript>().runEvent(SlotmachineEvent.Win);
             else
                 eventManager.GetComponent<EventManagerScript>().runEvent(SlotmachineEvent.Lose);
-
-            yield return new WaitForSeconds(1.0f);
-
-            setActive(true);
-            clearResultList();
             yield break;
         }
 
