@@ -130,7 +130,7 @@ namespace ReelManagement
 
                 GameObject reel = Instantiate(reelPrefab) as GameObject;
                 reel.transform.SetParent(reelContainer.transform);
-                reel.transform.position = new Vector3(xPos, 0, 0);
+                reel.transform.position = new Vector3(xPos, transform.position.y, 0);
                 /*reel.tag = "Reel";*/
                 reel.GetComponent<ReelScript>().reelManager = gameObject;
 

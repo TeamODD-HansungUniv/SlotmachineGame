@@ -6,6 +6,7 @@ TagManager:
   tags:
   - ReelManager
   - Reel
+  - Result
   layers:
   - Default
   - TransparentFX
