@@ -30,6 +30,7 @@ namespace EventManagement
         private float cardHeight;
         private float cardInterval;
         private int maxCard;
+        private int reelNum;
         private float maxSpeed;
 
         private List<Item> itemList;
@@ -42,6 +43,7 @@ namespace EventManagement
             cardInterval = reelManager.GetComponent<ReelManagerScript>().getCardInterval();
             maxCard = reelManager.GetComponent<ReelManagerScript>().getMaxCard();
             maxSpeed = reelManager.GetComponent<ReelManagerScript>().getMaxSpeed();
+            reelNum = reelManager.GetComponent<ReelManagerScript>().reelNum;
 
             itemList = new List<Item>();
         }
@@ -64,33 +66,40 @@ namespace EventManagement
                 StartCoroutine(winEvent());
                 break;
             case SlotmachineEvent.Lose:
-                    StartCoroutine(loseEvent());
-                    break;
+                StartCoroutine(loseEvent());
+                break;
             }
         }
 
         private IEnumerator winEvent()
         {
+            float cardArea = (cardInterval * 2) + (cardWidth * 1.3f);
+            reelNum = reelManager.GetComponent<ReelManagerScript>().reelNum;
             Color c = fadeWin.GetComponent<Image>().color;
             c.a = 0;
 
-            while (c.a <= 0.5f)
+            while (c.a <= 0.2f)
             {
                 c.a += 0.2f;
                 fadeLose.GetComponent<Image>().color = c;
                 yield return new WaitForSeconds(0.05f);
             }
+            showResultCards(reelNum, cardArea);
 
+            while (!Input.GetKey(KeyCode.Return))
+            {
+                yield return new WaitForEndOfFrame();
+            }
+
+            clearResultCards();
             while (0 <= c.a)
             {
                 c.a -= 0.2f;
                 fadeLose.GetComponent<Image>().color = c;
                 yield return new WaitForSeconds(0.05f);
             }
-
             c.a = 0;
             fadeLose.GetComponent<Image>().color = c;
-
             reelManager.GetComponent<ReelManagerScript>().setActive(true);
             reelManager.GetComponent<ReelManagerScript>().clearResultList();
             yield break;
@@ -100,7 +109,7 @@ namespace EventManagement
         {
 
             float cardArea = (cardInterval * 2) + (cardWidth * 1.3f);
-            int reelNum = reelManager.GetComponent<ReelManagerScript>().reelNum;
+            reelNum = reelManager.GetComponent<ReelManagerScript>().reelNum;
             Color c = fadeNormal.GetComponent<Image>().color;
             c.a = 0;
 
@@ -110,66 +119,22 @@ namespace EventManagement
                 fadeWin.GetComponent<Image>().color = c;
                 yield return new WaitForSeconds(0.05f);
             }
+            showResultCards(reelNum, cardArea);
 
-
-            float beginXPos = reelNum % 2 == 0 ? (int)(reelNum / 2) * cardArea - (cardArea / 2) : (reelNum / 2) * cardArea;
-            beginXPos *= -1;
-            for (int i = 0; i < reelNum; i++)
+            while (!Input.GetKey(KeyCode.Return)) 
             {
-                float xPos = beginXPos + (cardArea * i);
-                int symbolIndex = reelManager.GetComponent<ReelManagerScript>().resultList[i];
-
-                GameObject s = reelManager.GetComponent<ReelManagerScript>().symbolList[symbolIndex];
-
-                GameObject card = Instantiate(resultCardPrefab) as GameObject;
-                card.transform.SetParent(resultCanvas.transform);
-                card.transform.position = new Vector3(xPos, 0, 0);
-                card.transform.localScale = new Vector3(13f, 13f, 1f);
-                card.GetComponent<SpriteRenderer>().sortingLayerName = "Result";
-                card.GetComponent<SpriteRenderer>().sortingOrder = 0;
-
-                GameObject so = Instantiate(s) as GameObject;
-                so.transform.SetParent(card.transform);
-                so.transform.localScale = new Vector3(1.4f, 1.4f, 1f);
-                so.GetComponent<SpriteRenderer>().sortingLayerName = "Result";
-                so.GetComponent<SpriteRenderer>().sortingOrder = 1;
-                so.transform.position = so.transform.parent.position;
-
-                Item item = new Item
-                {
-                    symbolIndex = symbolIndex,
-                    symbol = so,
-                    card = card,
-                };
-
-                itemList.Add(item);
-            }
-
-            while (true) 
-            {
-                if(Input.GetKeyDown(KeyCode.Return))
-                {
-                    break;
-                }
                 yield return new WaitForEndOfFrame();
             }
 
-            /*while (0 <= c.a)
+            clearResultCards();
+
+            while (0 <= c.a)
             {
                 c.a -= 0.2f;
                 fadeWin.GetComponent<Image>().color = c;
                 yield return new WaitForSeconds(0.05f);
             }
-
             c.a = 0;
-            fadeWin.GetComponent<Image>().color = c;*/
-
-            for(int i = 0; i < itemList.Count; i++)
-            {
-                Destroy(itemList[i].symbol);
-                Destroy(itemList[i].card);
-            }
-            itemList.Clear();
             reelManager.GetComponent<ReelManagerScript>().setActive(true);
             reelManager.GetComponent<ReelManagerScript>().clearResultList();
             yield break;
@@ -214,6 +179,52 @@ namespace EventManagement
         public void fadeOut()
         {
             StartCoroutine(runFadeOut());
+        }
+
+        public void showResultCards(int reelNum, float cardArea)
+        {
+
+            float beginXPos = reelNum % 2 == 0 ? (int)(reelNum / 2) * cardArea - (cardArea / 2) : (reelNum / 2) * cardArea;
+            beginXPos *= -1;
+            for (int i = 0; i < reelNum; i++)
+            {
+                float xPos = beginXPos + (cardArea * i);
+                int symbolIndex = reelManager.GetComponent<ReelManagerScript>().resultList[i];
+
+                GameObject s = reelManager.GetComponent<ReelManagerScript>().symbolList[symbolIndex];
+
+                GameObject card = Instantiate(resultCardPrefab) as GameObject;
+                card.transform.SetParent(resultCanvas.transform);
+                card.transform.position = new Vector3(xPos, 0, 0);
+                card.transform.localScale = new Vector3(13f, 13f, 1f);
+                card.GetComponent<SpriteRenderer>().sortingLayerName = "Result";
+                card.GetComponent<SpriteRenderer>().sortingOrder = 0;
+
+                GameObject so = Instantiate(s) as GameObject;
+                so.transform.SetParent(card.transform);
+                so.transform.localScale = new Vector3(1.4f, 1.4f, 1f);
+                so.GetComponent<SpriteRenderer>().sortingLayerName = "Result";
+                so.GetComponent<SpriteRenderer>().sortingOrder = 1;
+                so.transform.position = so.transform.parent.position;
+
+                Item item = new Item
+                {
+                    symbolIndex = symbolIndex,
+                    symbol = so,
+                    card = card,
+                };
+                itemList.Add(item);
+            }
+        }
+
+        public void clearResultCards()
+        {
+            for (int i = 0; i < itemList.Count; i++)
+            {
+                Destroy(itemList[i].symbol);
+                Destroy(itemList[i].card);
+            }
+            itemList.Clear();
         }
     }
 }

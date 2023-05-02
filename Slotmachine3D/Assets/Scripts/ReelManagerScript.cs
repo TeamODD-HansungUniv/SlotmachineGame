@@ -262,7 +262,7 @@ namespace ReelManagement
         {
             float r = Random.Range(0, 100);
 
-            if (r <= 25)
+            if (r <= 100)
                 return 0;
             else if (r <= 50)
                 return 1;
