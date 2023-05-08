@@ -221,18 +221,33 @@ namespace ReelManagement
                 eventManager.GetComponent<EventManagerScript>().runEvent(SlotmachineEvent.Win);
             else
                 eventManager.GetComponent<EventManagerScript>().runEvent(SlotmachineEvent.Lose);*/
+            int sameCount = 0, bombCount = 0;
+            int bombIdx = symbolList.Count - 1;
 
-            int i = 0;
-            for(; i < resultList.Count; i++)
+
+            if (resultList[0] == bombIdx) bombCount++;
+            for(int i=1; i < resultList.Count; i++)
             {
-                if (resultList[i] != symbolList.Count - 1)
-                    break;
+                if (resultList[i] == bombIdx)
+                {
+                    bombCount++;
+                    continue;
+                }
+                if (resultList[i - 1] == resultList[i])
+                    sameCount++;
             }
 
-            if (resultList.Count <= i)
+            if (resultList.Count <= bombCount)
+            {
                 eventManager.GetComponent<EventManagerScript>().runEvent(SlotmachineEvent.Bomb);
+            }
             else
-                eventManager.GetComponent<EventManagerScript>().runEvent(SlotmachineEvent.Normal);
+            {
+                if (resultList.Count - 2 <= sameCount)
+                    eventManager.GetComponent<EventManagerScript>().runEvent(SlotmachineEvent.Win);
+                else
+                    eventManager.GetComponent<EventManagerScript>().runEvent(SlotmachineEvent.Normal);
+            }
 
             yield break;
         }

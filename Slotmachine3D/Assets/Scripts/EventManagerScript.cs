@@ -32,6 +32,7 @@ namespace EventManagement
         [SerializeField] GameObject fadeBomb;
 
         [SerializeField] AudioClip beginSound;
+        [SerializeField] AudioClip winSound;
         [SerializeField] AudioClip normalSound;
         [SerializeField] AudioClip bombSound;
         [SerializeField] AudioClip resultSound;
@@ -76,8 +77,7 @@ namespace EventManagement
             switch(e)
             {
             case SlotmachineEvent.Win:
-                    /*StartCoroutine(winEvent());*/
-                    StartCoroutine(normalEvent());
+                    StartCoroutine(winEvent());
                     break;
                 case SlotmachineEvent.Lose:
                     /*StartCoroutine(loseEvent());*/
@@ -94,41 +94,54 @@ namespace EventManagement
 
         private IEnumerator winEvent()
         {
+            ReelManagerScript reelmgr = reelManager.GetComponent<ReelManagerScript>();
+            Image img = fadeWin.GetComponent<Image>();
+
             float cardArea = (cardInterval * 2) + (cardWidth * 1.3f);
-            reelNum = reelManager.GetComponent<ReelManagerScript>().reelNum;
-            Color c = fadeWin.GetComponent<Image>().color;
+            reelNum = reelmgr.reelNum;
+            Color c = img.color;
             c.a = 0;
 
-            while (c.a <= 0.2f)
+            while (c.a <= 0.3f)
             {
                 c.a += 0.2f;
-                fadeWin.GetComponent<Image>().color = c;
+                img.color = c;
                 yield return new WaitForSeconds(0.05f);
             }
-            showResultCards(reelNum, cardArea);
 
+            StartCoroutine(showResultCards(reelNum, cardArea, 0.5f));
+            yield return new WaitForSeconds(3f);
 
+            audioSource.clip = winSound;
+            audioSource.Play();
+            resultCanvas.SetActive(false);
+            yield return new WaitForSeconds(0.2f);
+            resultCanvas.SetActive(true);
+            yield return new WaitForSeconds(1f);
+            resultCanvas.SetActive(false);
+            yield return new WaitForSeconds(0.2f);
+            resultCanvas.SetActive(true);
+            yield return new WaitForSeconds(1f);
 
+            yield return new WaitForSeconds(1f);
+            continueText.SetActive(true);
             while (!Input.GetKey(KeyCode.Return))
             {
-                
                 yield return new WaitForEndOfFrame();
             }
 
-
-
-
+            continueText.SetActive(false);
             clearResultCards();
+
             while (0 <= c.a)
             {
                 c.a -= 0.2f;
-                fadeLose.GetComponent<Image>().color = c;
+                img.color = c;
                 yield return new WaitForSeconds(0.05f);
             }
             c.a = 0;
-            fadeLose.GetComponent<Image>().color = c;
-            reelManager.GetComponent<ReelManagerScript>().setActive(true);
-            reelManager.GetComponent<ReelManagerScript>().clearResultList();
+            reelmgr.setActive(true);
+            reelmgr.clearResultList();
             yield break;
         }
 
@@ -170,7 +183,7 @@ namespace EventManagement
         private IEnumerator normalEvent()
         {
             ReelManagerScript reelmgr = reelManager.GetComponent<ReelManagerScript>();
-            Image img = fadeWin.GetComponent<Image>();
+            Image img = fadeNormal.GetComponent<Image>();
 
             float cardArea = (cardInterval * 2) + (cardWidth * 1.3f);
             reelNum = reelmgr.reelNum;
