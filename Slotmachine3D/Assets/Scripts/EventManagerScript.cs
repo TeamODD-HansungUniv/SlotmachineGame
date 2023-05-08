@@ -15,15 +15,26 @@ namespace EventManagement
             public int symbolIndex;
             public GameObject symbol;
             public GameObject card;
+            public GameObject frame;
         };
 
         [SerializeField] GameObject reelManager;
         [SerializeField] GameObject resultCanvas;
+        [SerializeField] GameObject continueText;
         [SerializeField] GameObject resultCardPrefab;
+        [SerializeField] GameObject frameNormalPrefab;
+        [SerializeField] GameObject frameBombPrefab;
         [SerializeField] GameObject settingCanvas;
+        [SerializeField] GameObject gameInfoCanvas;
         [SerializeField] GameObject fadeNormal;
         [SerializeField] GameObject fadeWin;
         [SerializeField] GameObject fadeLose;
+        [SerializeField] GameObject fadeBomb;
+
+        [SerializeField] AudioClip beginSound;
+        [SerializeField] AudioClip normalSound;
+        [SerializeField] AudioClip bombSound;
+        [SerializeField] AudioClip resultSound;
 
 
         private float cardWidth;
@@ -32,6 +43,7 @@ namespace EventManagement
         private int maxCard;
         private int reelNum;
         private float maxSpeed;
+        private AudioSource audioSource;
 
         private List<Item> itemList;
 
@@ -46,6 +58,7 @@ namespace EventManagement
             reelNum = reelManager.GetComponent<ReelManagerScript>().reelNum;
 
             itemList = new List<Item>();
+            audioSource = GetComponent<AudioSource>();
         }
 
         void Update()
@@ -63,10 +76,18 @@ namespace EventManagement
             switch(e)
             {
             case SlotmachineEvent.Win:
-                StartCoroutine(winEvent());
-                break;
-            case SlotmachineEvent.Lose:
-                StartCoroutine(loseEvent());
+                    /*StartCoroutine(winEvent());*/
+                    StartCoroutine(normalEvent());
+                    break;
+                case SlotmachineEvent.Lose:
+                    /*StartCoroutine(loseEvent());*/
+                    StartCoroutine(normalEvent());
+                    break;
+                case SlotmachineEvent.Normal:
+                    StartCoroutine(normalEvent());
+                    break;
+                case SlotmachineEvent.Bomb:
+                StartCoroutine(bombEvent());
                 break;
             }
         }
@@ -81,15 +102,21 @@ namespace EventManagement
             while (c.a <= 0.2f)
             {
                 c.a += 0.2f;
-                fadeLose.GetComponent<Image>().color = c;
+                fadeWin.GetComponent<Image>().color = c;
                 yield return new WaitForSeconds(0.05f);
             }
             showResultCards(reelNum, cardArea);
 
+
+
             while (!Input.GetKey(KeyCode.Return))
             {
+                
                 yield return new WaitForEndOfFrame();
             }
+
+
+
 
             clearResultCards();
             while (0 <= c.a)
@@ -140,6 +167,112 @@ namespace EventManagement
             yield break;
         }
 
+        private IEnumerator normalEvent()
+        {
+            ReelManagerScript reelmgr = reelManager.GetComponent<ReelManagerScript>();
+            Image img = fadeWin.GetComponent<Image>();
+
+            float cardArea = (cardInterval * 2) + (cardWidth * 1.3f);
+            reelNum = reelmgr.reelNum;
+            Color c = img.color;
+            c.a = 0;
+
+            while (c.a <= 0.3f)
+            {
+                c.a += 0.2f;
+                img.color = c;
+                yield return new WaitForSeconds(0.05f);
+            }
+
+            StartCoroutine(showResultCards(reelNum, cardArea, 0.5f));
+            yield return new WaitForSeconds(3f);
+
+            audioSource.clip = resultSound;
+            audioSource.Play();
+            resultCanvas.SetActive(false);
+            yield return new WaitForSeconds(0.2f);
+            resultCanvas.SetActive(true);
+            yield return new WaitForSeconds(1f);
+            resultCanvas.SetActive(false);
+            yield return new WaitForSeconds(0.2f);
+            resultCanvas.SetActive(true);
+            yield return new WaitForSeconds(1f);
+
+            yield return new WaitForSeconds(1f);
+            continueText.SetActive(true);
+            while (!Input.GetKey(KeyCode.Return)) 
+            {
+                yield return new WaitForEndOfFrame();
+            }
+
+            continueText.SetActive(false);
+            clearResultCards();
+
+            while (0 <= c.a)
+            {
+                c.a -= 0.2f;
+                img.color = c;
+                yield return new WaitForSeconds(0.05f);
+            }
+            c.a = 0;
+            reelmgr.setActive(true);
+            reelmgr.clearResultList();
+            yield break;
+        }
+
+        private IEnumerator bombEvent()
+        {
+            ReelManagerScript reelmgr = reelManager.GetComponent<ReelManagerScript>();
+            Image img = fadeBomb.GetComponent<Image>();
+
+            float cardArea = (cardInterval * 2) + (cardWidth * 1.3f);
+            reelNum = reelmgr.reelNum;
+            Color c = img.color;
+            c.a = 0;
+
+            while (c.a <= 0.3f)
+            {
+                c.a += 0.2f;
+                img.color = c;
+                yield return new WaitForSeconds(0.05f);
+            }
+
+            StartCoroutine(showResultCards(reelNum, cardArea, 0.5f));
+            yield return new WaitForSeconds(3f);
+
+            /*audioSource.clip = resultSound;
+            audioSource.Play();
+            resultCanvas.SetActive(false);
+            yield return new WaitForSeconds(0.2f);
+            resultCanvas.SetActive(true);
+            yield return new WaitForSeconds(1f);
+            resultCanvas.SetActive(false);
+            yield return new WaitForSeconds(0.2f);
+            resultCanvas.SetActive(true);
+            yield return new WaitForSeconds(1f);*/
+
+            yield return new WaitForSeconds(1f);
+            continueText.SetActive(true);
+            while (!Input.GetKey(KeyCode.Return))
+            {
+                yield return new WaitForEndOfFrame();
+            }
+
+            continueText.SetActive(false);
+            clearResultCards();
+
+            while (0 <= c.a)
+            {
+                c.a -= 0.2f;
+                img.color = c;
+                yield return new WaitForSeconds(0.05f);
+            }
+            c.a = 0;
+            reelmgr.setActive(true);
+            reelmgr.clearResultList();
+            yield break;
+        }
+
         private IEnumerator runFadeIn()
         {
             Color c = fadeNormal.GetComponent<Image>().color;
@@ -151,6 +284,7 @@ namespace EventManagement
                 fadeNormal.GetComponent<Image>().color = c;
                 yield return new WaitForSeconds(0.05f);
             }
+            gameInfoCanvas.SetActive(false);
             yield break;
         }
 
@@ -158,7 +292,7 @@ namespace EventManagement
         {
             Color c = fadeNormal.GetComponent<Image>().color;
             c.a = 1.0f;
-
+            gameInfoCanvas.SetActive(true);
             while (0 <= c.a)
             {
                 c.a -= 0.2f;
@@ -168,6 +302,9 @@ namespace EventManagement
 
             c.a = 0;
             fadeNormal.GetComponent<Image>().color = c;
+
+            audioSource.clip = beginSound;
+            audioSource.Play();
             yield break;
         }
 
@@ -217,12 +354,71 @@ namespace EventManagement
             }
         }
 
+        public IEnumerator showResultCards(int reelNum, float cardArea, float delay)
+        {
+
+            float beginXPos = reelNum % 2 == 0 ? (int)(reelNum / 2) * cardArea - (cardArea / 2) : (reelNum / 2) * cardArea;
+            beginXPos *= -1;
+            for (int i = 0; i < reelNum; i++)
+            {
+                ReelManagerScript script = reelManager.GetComponent<ReelManagerScript>();
+                float xPos = beginXPos + (cardArea * i);
+                int symbolIndex = script.resultList[i];
+
+                GameObject s = script.symbolList[symbolIndex];
+
+                GameObject card = Instantiate(resultCardPrefab) as GameObject;
+                card.transform.SetParent(resultCanvas.transform);
+                card.transform.position = new Vector3(xPos, 0, 0);
+                card.transform.localScale = new Vector3(13f, 13f, 1f);
+                card.GetComponent<SpriteRenderer>().sortingLayerName = "Result";
+                card.GetComponent<SpriteRenderer>().sortingOrder = 0;
+
+                GameObject so = Instantiate(s) as GameObject;
+                so.transform.SetParent(card.transform);
+                so.transform.localScale = new Vector3(1.2f, 1.2f, 1f);
+                so.GetComponent<SpriteRenderer>().sortingLayerName = "Result";
+                so.GetComponent<SpriteRenderer>().sortingOrder = 1;
+                so.transform.position = so.transform.parent.position;
+
+                GameObject f;
+                if(symbolIndex == script.symbolList.Count - 1)
+                    f = Instantiate(frameBombPrefab) as GameObject;
+                else 
+                    f = Instantiate(frameNormalPrefab) as GameObject;
+                f.transform.SetParent(card.transform);
+                f.transform.localScale = new Vector3(1.05f, 1.05f, 1f);
+                f.GetComponent<SpriteRenderer>().sortingLayerName = "Result";
+                f.GetComponent<SpriteRenderer>().sortingOrder = 2;
+                f.transform.position = so.transform.parent.position;
+
+                Item item = new Item
+                {
+                    symbolIndex = symbolIndex,
+                    symbol = so,
+                    card = card,
+                    frame = f,
+                };
+                itemList.Add(item);
+                if (symbolIndex == script.symbolList.Count - 1)
+                    audioSource.clip = bombSound;
+                else
+                    audioSource.clip = normalSound;
+                audioSource.Play();
+                yield return new WaitForSeconds(delay);
+            }
+            yield break;
+        }
+
+
+
         public void clearResultCards()
         {
             for (int i = 0; i < itemList.Count; i++)
             {
                 Destroy(itemList[i].symbol);
                 Destroy(itemList[i].card);
+                Destroy(itemList[i].frame);
             }
             itemList.Clear();
         }

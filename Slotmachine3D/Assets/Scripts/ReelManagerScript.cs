@@ -173,24 +173,34 @@ namespace ReelManagement
         private IEnumerator stopRotation()
         {
             initResultList();
-            for (int i = 0; i < reelNum; i++)
+            for (int i=0; i<reelNum; i++)
             {
-                reelList[i].reel.GetComponent<ReelScript>().stopReel(resultList[i]);
+                ReelScript script = reelList[i].reel.GetComponent<ReelScript>();
+                script.stopReel(resultList[i]);
+                while(script.getSpeed() != 0)
+                { 
+                    yield return new WaitForEndOfFrame();
+                }
+                yield return new WaitForSeconds(0.5f);
             }
 
-            while(true)
+            /*while(true)
             {
                 int i = 0;
-                for (; i < reelNum; i++) 
+                for (; i < reelNum; i++)
                 {
+                    reelList[i].reel.GetComponent<ReelScript>().stopReel(resultList[i]);
                     if (reelList[i].reel.GetComponent<ReelScript>().getSpeed() != 0)
+                    {
+                        yield return new WaitForSeconds(0.5f);
                         break;
+                    }
                 }
                 if (i == reelNum)
                     break;
                 yield return new WaitForEndOfFrame();
             }
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(0.5f);*/
 
             StartCoroutine(runEvent());
 
@@ -200,7 +210,7 @@ namespace ReelManagement
 
         private IEnumerator runEvent()
         {
-            int i = 1;
+            /*int i = 1;
             for(; i<resultList.Count; i++)
             {
                 if (resultList[i - 1] != resultList[i])
@@ -210,7 +220,20 @@ namespace ReelManagement
             if(i == resultList.Count)
                 eventManager.GetComponent<EventManagerScript>().runEvent(SlotmachineEvent.Win);
             else
-                eventManager.GetComponent<EventManagerScript>().runEvent(SlotmachineEvent.Lose);
+                eventManager.GetComponent<EventManagerScript>().runEvent(SlotmachineEvent.Lose);*/
+
+            int i = 0;
+            for(; i < resultList.Count; i++)
+            {
+                if (resultList[i] != symbolList.Count - 1)
+                    break;
+            }
+
+            if (resultList.Count <= i)
+                eventManager.GetComponent<EventManagerScript>().runEvent(SlotmachineEvent.Bomb);
+            else
+                eventManager.GetComponent<EventManagerScript>().runEvent(SlotmachineEvent.Normal);
+
             yield break;
         }
 
@@ -262,14 +285,16 @@ namespace ReelManagement
         {
             float r = Random.Range(0, 100);
 
-            if (r <= 100)
+            if (r <= 20)
                 return 0;
-            else if (r <= 50)
+            else if (r <= 40)
                 return 1;
-            else if (r <= 75)
+            else if (r <= 60)
                 return 2;
-            else
+            else if (r <= 80)
                 return 3;
+            else
+                return 4;
         }
     }
 }

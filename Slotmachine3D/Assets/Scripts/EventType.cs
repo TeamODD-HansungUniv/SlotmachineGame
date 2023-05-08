@@ -10,6 +10,8 @@ namespace EventType
         {
             Win,
             Lose,
+            Normal,
+            Bomb,
         }
     }
 }

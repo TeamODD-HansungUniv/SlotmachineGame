@@ -7,6 +7,7 @@ namespace ReelManagement
 {
     public class ReelScript : MonoBehaviour
     {
+        [SerializeField] AudioClip spinSound;
 
         struct Item
         {
@@ -25,18 +26,14 @@ namespace ReelManagement
         private GameObject cardPrefab;
         private List<Item> itemList;
         private float speed;
+        private AudioSource audioSource;
 
 
         // Start is called before the first frame update
         void Start()
         {
-
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-
+            audioSource = GetComponent<AudioSource>();
+            audioSource.clip = spinSound;
         }
 
         // Custom Functions
@@ -131,6 +128,8 @@ namespace ReelManagement
 
             itemList.Add(item);
 
+            audioSource.Play();
+
             yield break;
         }
 
@@ -151,7 +150,7 @@ namespace ReelManagement
         {
             float minSpeed = 10.0f;
             float yPos = transform.position.y;
-            yield return new WaitForSeconds(Random.Range(0.5f, 2.0f));
+            /*yield return new WaitForSeconds(Random.Range(0.5f, 2.0f));*/
 
             while (minSpeed < speed)
             {
