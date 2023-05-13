@@ -243,7 +243,7 @@ namespace ReelManagement
             }
             else
             {
-                if (resultList.Count - 2 <= sameCount)
+                if (resultList.Count - 3 <= sameCount)
                     eventManager.GetComponent<EventManagerScript>().runEvent(SlotmachineEvent.Win);
                 else
                     eventManager.GetComponent<EventManagerScript>().runEvent(SlotmachineEvent.Normal);
