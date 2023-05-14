@@ -1,4 +1,8 @@
 # Slotmachine3D
+
+- 유니티C# 개발 : 송재욱
+- 그래픽 소스 제공 : 김시언
+
 ![Basic screen](https://github.com/SsalHub/Slotmachine3D/assets/53378637/1913e7b6-484b-4006-8f6e-15173dbc3f96)
 **기본 화면 - 스페이스 바를 눌러 회전 시작 (Press space bar to begin rolling)**
 
